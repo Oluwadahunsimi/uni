@@ -6,9 +6,10 @@ import io
 import base64
 from datetime import datetime
 import cv2
-from pyzbar.pyzbar import decode
 import numpy as np
 import os
+import base64
+import pyqrcode
  
 app = Flask(__name__) 
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
@@ -219,17 +220,13 @@ def provide_feedback(appointment_id):
 
     flash("Feedback provided successfully.")
     return redirect(url_for('notifications'))
-
 @app.route('/qr-code/<data>')
 def generate_qr(data):
-    img = qrcode.make(data)
-    buf = io.BytesIO()
-    img.save(buf)
-    buf.seek(0)
-    img_bytes = buf.getvalue()
-    img_b64 = base64.b64encode(img_bytes).decode('utf-8')
+    qr_code = pyqrcode.create(data)
+    qr_code_bytes = qr_code.png(scale=10)
+    qr_code_base64 = base64.b64encode(qr_code_bytes).decode('utf-8')
 
-    return jsonify({"qr_code": img_b64})
+    return jsonify({"qr_code": qr_code_base64})
 
 @app.route('/scan-qr', methods=['POST'])
 def scan_qr():
@@ -237,16 +234,15 @@ def scan_qr():
         return redirect(url_for('home'))
 
     file = request.files['qr_code']
-    np_img = np.fromstring(file.read(), np.uint8)
-    img = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
-    barcodes = decode(img)
-    results = []
+    img = Image.open(io.BytesIO(file.read()))
+    gray_img = img.convert('L')  # Convert to grayscale
+    qr_code = zbarlight.scan_codes('qrcode', gray_img)
 
-    for barcode in barcodes:
-        barcode_data = barcode.data.decode('utf-8')
-        results.append(barcode_data)
-
-    return jsonify({"results": results})
+    if qr_code:
+        qr_code_data = qr_code[0].decode('utf-8')
+        return jsonify({"results": [qr_code_data]})
+    else:
+        return jsonify({"results": []})
 
 @app.route('/mark_attendance', methods=['POST'])
 def mark_attendance():
