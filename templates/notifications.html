@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Notifications</h1>
+        <hr>
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                {% if appointments %}
+                    <ul class="list-group">
+                        {% for appointment in appointments %}
+                            <li class="list-group-item">
+                                <h5>Appointment with {{ appointment.lecturer_email }}</h5>
+                                <p>Appointment Time: {{ appointment.appointment_time }}</p>
+                                <p>Reason: {{ appointment.reason }}</p>
+                                <form action="{{ url_for('send_feedback') }}" method="post">
+                                    <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                    <textarea name="feedback" class="form-control" placeholder="Enter feedback"></textarea>
+                                    <button type="submit" class="btn btn-primary mt-3">Send Feedback</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No notifications</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

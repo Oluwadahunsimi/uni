@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointments</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #1184cb, #2575fc);
+            color: black;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.5s ease;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            animation: fadeIn 1s ease-in-out;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="gradient-text">Book an Appointment</h2>
+        <form method="POST" action="{{ url_for('appointments') }}">
+            <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="matric_number">Matric Number</label>
+                <input type="text" class="form-control" id="matric_number" name="matric_number" required>
+            </div>
+            <div class="form-group">
+                <label for="level">Level</label>
+                <select class="form-control" id="level" name="level" required>
+                    <option value="">Select your level</option>
+                    <option value="100">100 Level</option>
+                    <option value="200">200 Level</option>
+                    <option value="300">300 Level</option>
+                    <option value="400">400 Level</option>
+                    <option value="500">500 Level</option>
+                    <option value="Masters">Masters</option>
+                    <option value="PhD">PhD</option>
+                    <option value="JUPEB">JUPEB</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="relationship">Relationship</label>
+                <div>
+                    <input type="radio" id="supervisor" name="relationship" value="Supervisor" required>
+                    <label for="supervisor">Supervisor</label><br>
+                    <input type="radio" id="course-lecturer" name="relationship" value="Course-Lecturer" required>
+                    <label for="course-lecturer">Course Lecturer</label><br>
+                    <input type="radio" id="level-adviser" name="relationship" value="Level Adviser" required>
+                    <label for="level-adviser">Level Adviser</label><br>
+                    <input type="radio" id="hod" name="relationship" value="HOD" required>
+                    <label for="hod">Head of Department</label><br>
+                    <input type="radio" id="dean" name="relationship" value="Dean" required>
+                    <label for="dean">Dean</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="lecturer_id">Select Lecturer</label>
+                <select class="form-control" id="lecturer_id" name="lecturer_id" required>
+                    <option value="">Select Lecturer</option>
+                    {% for lecturer in lecturers %}
+                        <option value="{{ lecturer.id }}">{{ lecturer.email }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="appointment_time">Appointment Time</label>
+                <input type="datetime-local" class="form-control" id="appointment_time" name="appointment_time" min="{{ current_datetime }}" required>
+            </div>
+            <div class="form-group">
+                <label for="reason">Reason for Appointment</label>
+                <textarea class="form-control" id="reason" name="reason" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Book</button>
+        </form>
+        
+        <h2 class="gradient-text mt-5">Your Appointments</h2>
+        <ul class="list-group">
+            {% for appointment in appointments %}
+                <li class="list-group-item">
+                    Appointment with {{ appointment.lecturer_email }} at {{ appointment.appointment_time }}<br>
+                    Reason: {{ appointment.reason }}
+                    {% if appointment.feedback %}
+                        <br>Feedback: {{ appointment.feedback }}
+                    {% else %}
+                        <form method="POST" action="{{ url_for('send_feedback') }}">
+                            <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                            <input type="text" name="feedback" class="form-control mt-2" required>
+                            <button type="submit" class="btn btn-primary mt-2">Send Feedback</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        // Set minimum datetime-local input value to current date and time
+        document.getElementById('appointment_time').min = new Date().toISOString().slice(0,16);
+    </script>
+</body>
+</html>
